@@ -34,7 +34,7 @@ The code is ran through the script `add_psweights_to_parquet.py`, which comes wi
 * `--input-file`: The full path to the parquet file you wish to add the weights for.
 * `--director`: The full path to the json director containing the NanoAOD ROOT file names.
 * `--output-folder`: The folder you wish the code to write the output. If unset will you the directory of the input-file but with a `_with_psweight` extension.
-* `--specific-index`: If set (with an integer input), it will only run this specific NanoAOD ROOT file index.
+* `--specific-nano-index`: If set (with an integer input), it will only run this specific NanoAOD ROOT file index.
 * `--submit`: If set (to true), it will submit the jobs to the CERN htcondor cluster.
 * `--collect`: If set (to true), it will collect the outputs of the jobs submitted, if they all exist.
 * `--file-index-name`: The column name of the NanoAOD ROOT file index.
@@ -47,7 +47,7 @@ The code is ran through the script `add_psweights_to_parquet.py`, which comes wi
 To run a test on a single NanoAOD ROOT file, you can use the command:
 
 ```
-python3 add_psweights_to_parquet.py --input-file="/eos/user/g/guttley/pc_output/230626_btag_parquet/TTToSemiLeptonic_2023_postBPix.parquet" --director="/afs/cern.ch/work/g/guttley/private/top_reco/AnalysisConfigs/Datasets/signals_MC_ttbar.json" --specific-index=0
+python3 add_psweights_to_parquet.py --input-folder="/eos/user/g/guttley/pc_output/230626_btag_parquet" --input-file="TTToSemiLeptonic_2023_postBPix" --director="/afs/cern.ch/work/g/guttley/private/top_reco/AnalysisConfigs/Datasets/signals_MC_ttbar.json" --specific-nano-index=0 --specific-batch-index=0
 ```
 
 ## Running locally (slow)
@@ -55,7 +55,7 @@ python3 add_psweights_to_parquet.py --input-file="/eos/user/g/guttley/pc_output/
 To run the whole parquet file locally, you can use the command:
 
 ```
-python3 add_psweights_to_parquet.py --input-file="/eos/user/g/guttley/pc_output/230626_btag_parquet/TTToSemiLeptonic_2023_postBPix.parquet" --director="/afs/cern.ch/work/g/guttley/private/top_reco/AnalysisConfigs/Datasets/signals_MC_ttbar.json"
+python3 add_psweights_to_parquet.py --input-folder="/eos/user/g/guttley/pc_output/230626_btag_parquet" --input-file="TTToSemiLeptonic_2023_postBPix" --director="/afs/cern.ch/work/g/guttley/private/top_reco/AnalysisConfigs/Datasets/signals_MC_ttbar.json"
 ```
 
 ## Running on the batch
@@ -63,11 +63,73 @@ python3 add_psweights_to_parquet.py --input-file="/eos/user/g/guttley/pc_output/
 To submit the jobs to the CERN htcondor cluster, you can use the command:
 
 ```
-python3 add_psweights_to_parquet.py --input-file="/eos/user/g/guttley/pc_output/230626_btag_parquet/TTToSemiLeptonic_2023_postBPix.parquet" --director="/afs/cern.ch/work/g/guttley/private/top_reco/AnalysisConfigs/Datasets/signals_MC_ttbar.json" --submit
+python3 add_psweights_to_parquet.py --input-folder="/eos/user/g/guttley/pc_output/230626_btag_parquet" --input-file="TTToSemiLeptonic_2023_postBPix" --director="/afs/cern.ch/work/g/guttley/private/top_reco/AnalysisConfigs/Datasets/signals_MC_ttbar.json" --submit
 ```
 
 Once all the jobs have finished you can collect the outputs with the command:
 
 ```
-python3 add_psweights_to_parquet.py --input-file="/eos/user/g/guttley/pc_output/230626_btag_parquet/TTToSemiLeptonic_2023_postBPix.parquet" --director="/afs/cern.ch/work/g/guttley/private/top_reco/AnalysisConfigs/Datasets/signals_MC_ttbar.json" --collect
+python3 add_psweights_to_parquet.py --input-folder="/eos/user/g/guttley/pc_output/230626_btag_parquet" --input-file="TTToSemiLeptonic_2023_postBPix" --director="/afs/cern.ch/work/g/guttley/private/top_reco/AnalysisConfigs/Datasets/signals_MC_ttbar.json" --collect
+```
+
+## Running more than one files
+
+You can also run on more than one input parquet file at a time. This can be done by providing a comma separated list for the `--input-file` option. You can also parse a comma separated list for the `--director` option. A full command used for TOP-26-010 is:
+
+```
+years=("2016_PreVFP" "2016_PostVFP" "2017" "2018" "2022_preEE" "2022_postEE" "2023_preBPix" "2023_postBPix" "2024")
+samples=(
+  "TTToSemiLeptonic"
+  "TTTo2L2Nu"
+  "TTToHadronic"
+  "TTMtt700To1000"
+  "TTMtt1000"
+  "TTToSemiLeptonic166p5"
+  "TTToSemiLeptonic169p5"
+  "TTToSemiLeptonic171p5"
+  "TTToSemiLeptonic173p5"
+  "TTToSemiLeptonic175p5"
+  "TTToSemiLeptonic178p5"
+  "TTTo2L2Nu166p5"
+  "TTTo2L2Nu169p5"
+  "TTTo2L2Nu171p5"
+  "TTTo2L2Nu173p5"
+  "TTTo2L2Nu175p5"
+  "TTTo2L2Nu178p5"
+  "TTToHadronic166p5"
+  "TTToHadronic169p5"
+  "TTToHadronic171p5"
+  "TTToHadronic173p5"
+  "TTToHadronic175p5"
+  "TTToHadronic178p5"
+  "TTToSemiLeptonic_CR1"
+  "TTToSemiLeptonic_CR2"
+  "TTToSemiLeptonic_hdamp_Up"
+  "TTToSemiLeptonic_hdamp_Down"
+  "TTToSemiLeptonic_ue_Up"
+  "TTToSemiLeptonic_ue_Down"
+  "TTToSemiLeptonic_ERDOn"
+  "ST_t_channel_top"
+  "ST_t_channel_antitop"
+  "ST_t_channel_top_hadronic"
+  "ST_t_channel_antitop_hadronic"
+  "ST_t_channel_top_leptonic"
+  "ST_t_channel_antitop_leptonic"
+  "ST_s_channel"
+  "ST_s_channel_hadronic"
+  "ST_s_channel_leptonic"
+  "ST_s_channel_top"
+  "ST_s_channel_antitop"
+  "ST_s_channel_top_leptonic"
+  "ST_s_channel_antitop_leptonic"
+  "ST_tW_antitop"
+  "ST_tW_top"
+)
+file_string=""
+for year in "${years[@]}"; do for sample in "${samples[@]}"; do file_string+="${sample}_${year},"; done; done
+file_string="${file_string%,}"
+```
+
+```
+python3 add_psweights_to_parquet.py --input-folder="/eos/user/g/guttley/pc_output/230626_btag_parquet" --input-file="${file_string}" --director="/afs/cern.ch/work/g/guttley/private/top_reco/AnalysisConfigs/Datasets/signals_MC_ttbar.json,/afs/cern.ch/work/g/guttley/private/top_reco/AnalysisConfigs/Datasets/backgrounds_MC_ttbar.json"
 ```
