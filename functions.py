@@ -2,6 +2,8 @@ import os
 import json
 import subprocess
 
+import numpy as np
+
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 SITE_REDIRECTORS = {
@@ -102,8 +104,17 @@ def make_and_submit_batch_job(dataset_name, args, input_file, output_folder, pro
     file_dir = os.path.dirname(os.path.abspath(__file__))
     f.write(f"cd {file_dir}\n")
     f.write("eval `scramv1 runtime -sh`\n")
-    cmd = f"python3 add_psweights_to_parquet.py --input-file {input_file} --input-folder='' --director {args.director} --output-folder {output_folder} --specific-nano-index $2 --specific-batch-index {specific_batch_index}"
+    # Add loop through points in the batch
+    f.write(f"for i in $(seq 0 {args.points_per_job - 1}); do\n")
+    f.write(f"  specific_nano_index=$(( $2 * {args.points_per_job} + i ))\n")
+    f.write(f"  if [ $specific_nano_index -ge {len(file_names)} ]; then\n")
+    f.write(f"    break\n")
+    f.write(f"  fi\n")
+    cmd = f"  python3 add_psweights_to_parquet.py --input-file {input_file} --input-folder='' --director {args.director} --output-folder {output_folder} --specific-nano-index $specific_nano_index --specific-batch-index {specific_batch_index}"
     f.write(f"{cmd}\n")
+    f.write("done\n")
+  total_files = len(file_names)
+  total_jobs = int(np.ceil(total_files / args.points_per_job))
   with open(f"{job_name}.sub", "w") as f:
     f.write(f"Proxy_path = {proxy}\n")
     f.write("arguments = $(Proxy_path) $(ProcId)\n")
@@ -117,7 +128,7 @@ def make_and_submit_batch_job(dataset_name, args, input_file, output_folder, pro
     f.write(f'when_to_transfer_output = ON_EXIT\n')
     f.write(f'transfer_output_files = ""\n')
     f.write(f'transfer_input_files = $(Proxy_path)\n')
-    f.write(f"queue {len(file_names)}\n")
+    f.write(f"queue {total_jobs}\n")
   if not dry_run:
     subprocess.run(["condor_submit", f"{job_name}.sub"])
     print(f"Submitted job for {dataset_name} with {len(file_names)} NanoAOD files")

@@ -44,6 +44,7 @@ parser.add_argument('--lumi-block-name', help='Column name for luminosity block'
 parser.add_argument('--event-name', help='Column name for event', type=str, default="EventInfo_event")
 parser.add_argument('--batch-size', help='Batch size for processing parquet files', type=int, default=500000)
 parser.add_argument('--dry-run', help='Whether to perform a dry run', action='store_true')
+parser.add_argument('--points-per-job', help='Number of points to process per job', type=int, default=10)
 args = parser.parse_args()
 
 # Define input files
